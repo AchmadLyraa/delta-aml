@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Entity {
+  id                   String      @id @default(cuid())
+  name                 String
+  entityType           EntityType
+  identificationNumber String      @unique
+  address              String?
+  phoneNumber          String?
+  email                String?
+  dateOfBirth          DateTime?
+  nationality          String?
+  occupation           String?
+  riskProfile          RiskLevel   @default(LOW)
+  isBlacklisted        Boolean     @default(false)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  
+  accounts             Account[]
+  
+  @@map("entities")
+}
+
+model Account {
+  id            String      @id @default(cuid())
+  accountNumber String      @unique
+  accountType   AccountType
+  balance       Float       @default(0)
+  currency      String      @default("USD")
+  ownerId       String
+  isActive      Boolean     @default(true)
+  riskLevel     RiskLevel   @default(LOW)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  owner         Entity      @relation(fields: [ownerId], references: [id])
+  
+  sentTransactions     Transaction[] @relation("FromAccount")
+  receivedTransactions Transaction[] @relation("ToAccount")
+  
+  @@map("accounts")
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  amount          Float
+  fromAccountId   String
+  toAccountId     String
+  timestamp       DateTime        @default(now())
+  transactionType TransactionType
+  currency        String          @default("USD")
+  riskScore       Int             @default(0)
+  isSuspicious    Boolean         @default(false)
+  blockchainHash  String?
+  geolocation     String?
+  description     String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  fromAccount     Account         @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount       Account         @relation("ToAccount", fields: [toAccountId], references: [id])
+  
+  alerts          AMLAlert[]
+  
+  @@map("transactions")
+}
+
+model AMLAlert {
+  id            String        @id @default(cuid())
+  transactionId String
+  alertType     AlertType
+  severity      AlertSeverity
+  description   String
+  riskScore     Int
+  isResolved    Boolean       @default(false)
+  resolvedBy    String?
+  resolvedAt    DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  transaction   Transaction   @relation(fields: [transactionId], references: [id])
+  
+  @@map("aml_alerts")
+}
+
+model ProcurementContract {
+  id               String    @id @default(cuid())
+  contractNumber   String    @unique
+  itemName         String
+  specification    String
+  estimatedPrice   Float
+  bidPrice         Float
+  vendorId         String
+  procuringAgency  String
+  contractDate     DateTime
+  isMarkedUp       Boolean   @default(false)
+  markupPercentage Float?
+  blockchainHash   String?
+  oracleVerified   Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  vendor           Vendor    @relation(fields: [vendorId], references: [id])
+  
+  @@map("procurement_contracts")
+}
+
+model Vendor {
+  id                 String               @id @default(cuid())
+  name               String
+  registrationNumber String               @unique
+  address            String
+  contactPerson      String
+  phoneNumber        String
+  email              String
+  businessType       String
+  riskRating         RiskLevel            @default(LOW)
+  isBlacklisted      Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  
+  contracts          ProcurementContract[]
+  
+  @@map("vendors")
+}
+
+model OraclePriceData {
+  id            String   @id @default(cuid())
+  itemCategory  String
+  itemName      String
+  marketPrice   Float
+  source        String
+  confidence    Float
+  timestamp     DateTime @default(now())
+  blockchainHash String?
+  
+  @@map("oracle_price_data")
+}
+
+enum EntityType {
+  INDIVIDUAL
+  CORPORATION
+  GOVERNMENT_AGENCY
+  NON_PROFIT
+  FINANCIAL_INSTITUTION
+}
+
+enum AccountType {
+  PERSONAL
+  BUSINESS
+  GOVERNMENT
+  FINANCIAL_INSTITUTION
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TransactionType {
+  TRANSFER
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  EXCHANGE
+}
+
+enum AlertType {
+  SMURFING
+  LAYERING
+  STRUCTURING
+  UNUSUAL_PATTERN
+  HIGH_RISK_JURISDICTION
+  VELOCITY_CHECK
+  THRESHOLD_BREACH
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

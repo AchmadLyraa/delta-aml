@@ -1,0 +1,20 @@
+📊 REAL WORLD FLOW:
+Bank/Financial Institution → DELTA Platform → Analysis → Blockchain Record
+
+🔄 DELTA ARCHITECTURE:
+1. PostgreSQL Database (Primary) ← Data masuk kesini dulu
+2. Blockchain (Secondary) ← Cuma buat immutable record
+
+1. Transaction Happens (Bank/ATM/Transfer)
+   ↓
+2. Data masuk ke DELTA via API/Form
+   ↓  
+3. Simpan ke PostgreSQL Database
+   ↓
+4. ML Algorithm analyze (Risk Score)
+   ↓
+5. Kalau suspicious → Create Alert
+   ↓
+6. Record hash ke Blockchain (optional)
+   ↓
+7. Display di Dashboard
