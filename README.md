@@ -1,5 +1,5 @@
 # DELTA - Anti-Money Laundering Platform MVP
-
+ 
 DELTA (Decentralized Ledger Technology for Anti-laundering) adalah platform terintegrasi berbasis AI dan Blockchain Smart Contract untuk deteksi pencucian uang dan transparansi pengadaan pemerintah.
 
 ## 🚀 Fitur Utama
